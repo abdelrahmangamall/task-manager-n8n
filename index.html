@@ -109,6 +109,13 @@
             cursor: not-allowed;
         }
 
+        .btn-clear {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 0.9em;
+        }
+
         .status {
             padding: 10px;
             border-radius: 8px;
@@ -170,6 +177,7 @@
             display: flex;
             gap: 15px;
             font-size: 0.9em;
+            flex-wrap: wrap;
         }
 
         .priority {
@@ -215,6 +223,18 @@
             display: block;
             margin-top: 5px;
         }
+
+        .tasks-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .tasks-header h2 {
+            color: #333;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -230,7 +250,7 @@
                 <div class="input-group">
                     <label>n8n Webhook URL:</label>
                     <input type="url" id="webhookUrl" placeholder="https://your-n8n-instance.com/webhook/task-manager">
-                    <small>Enter your n8n webhook URL that will receive the task data</small>
+                    <small>Enter your n8n PRODUCTION webhook URL (not test URL). Make sure your workflow is ACTIVE!</small>
                 </div>
             </div>
 
@@ -270,7 +290,10 @@
         </div>
 
         <div class="card">
-            <h2 style="margin-bottom: 20px; color: #333;">📋 Recent Tasks</h2>
+            <div class="tasks-header">
+                <h2>📋 Recent Tasks</h2>
+                <button class="btn btn-clear" id="clearBtn" style="width: auto;">🗑️ Clear All</button>
+            </div>
             <div id="tasksList" class="tasks-list">
                 <p style="color: #999; text-align: center;">No tasks yet. Create your first task above!</p>
             </div>
@@ -278,7 +301,7 @@
     </div>
 
     <script>
-        const tasks = [];
+        let tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
         
         const savedWebhook = localStorage.getItem('n8n_webhook_url');
         if (savedWebhook) {
@@ -302,7 +325,7 @@
         function addTaskToUI(task) {
             const tasksList = document.getElementById('tasksList');
             
-            if (tasks.length === 1) {
+            if (tasksList.querySelector('p')) {
                 tasksList.innerHTML = '';
             }
 
@@ -320,6 +343,27 @@
             
             tasksList.insertBefore(taskEl, tasksList.firstChild);
         }
+
+        function loadTasks() {
+            if (tasks.length > 0) {
+                const tasksList = document.getElementById('tasksList');
+                tasksList.innerHTML = '';
+                tasks.forEach(task => addTaskToUI(task));
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            if (confirm('Are you sure you want to clear all tasks?')) {
+                tasks = [];
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+                document.getElementById('tasksList').innerHTML = '<p style="color: #999; text-align: center;">No tasks yet. Create your first task above!</p>';
+                showStatus('✅ All tasks cleared!', 'success');
+            }
+        });
 
         document.getElementById('taskForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -362,6 +406,7 @@
                     }
                     
                     tasks.unshift(task);
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
                     addTaskToUI(task);
                     
                     showStatus(`✅ Task created successfully! n8n workflow triggered. ${result.message || ''}`, 'success');
@@ -372,7 +417,7 @@
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showStatus('❌ Failed to connect to n8n webhook. Please check your URL and try again.', 'error');
+                showStatus('❌ Failed to connect to n8n webhook. Please check your URL and make sure the workflow is ACTIVE!', 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = '🚀 Create Task & Trigger n8n Workflow';
