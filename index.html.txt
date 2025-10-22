@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Manager - n8n Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group input,
+        .input-group textarea,
+        .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus,
+        .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .input-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .tasks-list {
+            margin-top: 20px;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .task-item h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .task-item p {
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+        }
+
+        .priority {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .priority.high {
+            background: #fee;
+            color: #c00;
+        }
+
+        .priority.medium {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .priority.low {
+            background: #dfe6e9;
+            color: #2d3436;
+        }
+
+        .timestamp {
+            color: #999;
+        }
+
+        .config-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .config-section h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .config-section small {
+            color: #666;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Smart Task Manager</h1>
+            <p>Powered by n8n Workflow Automation</p>
+        </div>
+
+        <div class="card">
+            <div class="config-section">
+                <h3>🔧 n8n Webhook Configuration</h3>
+                <div class="input-group">
+                    <label>n8n Webhook URL:</label>
+                    <input type="url" id="webhookUrl" placeholder="https://your-n8n-instance.com/webhook/task-manager">
+                    <small>Enter your n8n webhook URL that will receive the task data</small>
+                </div>
+            </div>
+
+            <div class="status" id="statusMessage"></div>
+
+            <h2 style="margin-bottom: 20px; color: #333;">📝 Create New Task</h2>
+            
+            <form id="taskForm">
+                <div class="input-group">
+                    <label>Task Title *</label>
+                    <input type="text" id="taskTitle" required placeholder="Enter task title">
+                </div>
+
+                <div class="input-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription" placeholder="Enter task description"></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label>Priority *</label>
+                    <select id="taskPriority" required>
+                        <option value="low">Low Priority</option>
+                        <option value="medium" selected>Medium Priority</option>
+                        <option value="high">High Priority</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Your Email (for notifications)</label>
+                    <input type="email" id="taskEmail" placeholder="your.email@example.com">
+                </div>
+
+                <button type="submit" class="btn" id="submitBtn">
+                    🚀 Create Task & Trigger n8n Workflow
+                </button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #333;">📋 Recent Tasks</h2>
+            <div id="tasksList" class="tasks-list">
+                <p style="color: #999; text-align: center;">No tasks yet. Create your first task above!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tasks = [];
+        
+        // Load saved webhook URL
+        const savedWebhook = localStorage.getItem('n8n_webhook_url');
+        if (savedWebhook) {
+            document.getElementById('webhookUrl').value = savedWebhook;
+        }
+
+        // Save webhook URL on change
+        document.getElementById('webhookUrl').addEventListener('change', (e) => {
+            localStorage.setItem('n8n_webhook_url', e.target.value);
+        });
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type} show`;
+            
+            setTimeout(() => {
+                statusEl.classList.remove('show');
+            }, 5000);
+        }
+
+        function addTaskToUI(task) {
+            const tasksList = document.getElementById('tasksList');
+            
+            if (tasks.length === 1) {
+                tasksList.innerHTML = '';
+            }
+
+            const taskEl = document.createElement('div');
+            taskEl.className = 'task-item';
+            taskEl.innerHTML = `
+                <h3>${task.title}</h3>
+                <p>${task.description || 'No description provided'}</p>
+                <div class="task-meta">
+                    <span class="priority ${task.priority}">${task.priority.toUpperCase()}</span>
+                    <span class="timestamp">Created: ${new Date(task.timestamp).toLocaleString()}</span>
+                    ${task.status ? `<span style="color: #27ae60; font-weight: 600;">✓ ${task.status}</span>` : ''}
+                </div>
+            `;
+            
+            tasksList.insertBefore(taskEl, tasksList.firstChild);
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const webhookUrl = document.getElementById('webhookUrl').value.trim();
+            
+            if (!webhookUrl) {
+                showStatus('❌ Please enter your n8n webhook URL first!', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '⏳ Sending to n8n...';
+
+            const task = {
+                id: Date.now(),
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                priority: document.getElementById('taskPriority').value,
+                email: document.getElementById('taskEmail').value,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(task)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    
+                    // Update task with response from n8n
+                    if (result.status) {
+                        task.status = result.status;
+                    }
+                    
+                    tasks.unshift(task);
+                    addTaskToUI(task);
+                    
+                    showStatus(`✅ Task created successfully! n8n workflow triggered. ${result.message || ''}`, 'success');
+                    
+                    // Reset form
+                    document.getElementById('taskForm').reset();
+                } else {
+                    throw new Error('Failed to send data to n8n');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('❌ Failed to connect to n8n webhook. Please check your URL and try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Create Task & Trigger n8n Workflow';
+            }
+        });
+
+        // Simulate receiving updates from n8n (in real scenario, you'd use WebSockets or polling)
+        // This demonstrates the "bonus" requirement: workflow output affecting the website
+    </script>
+</body>
+</html>
