@@ -165,7 +165,7 @@ Before running this project, make sure you have:
 
 3. **Wait for confirmation:**
    - ✅ Success message appears
-   - Task appears in "Recent Tasks" section
+   - Task appears in the "Recent Tasks" section
    - Data is saved to Google Sheets automatically
 
 ### Managing Tasks
@@ -228,28 +228,30 @@ task-manager-n8n/
 
 ## 🎥 Demo Video
 
-[Insert your screen recording link here]
+[[Insert your screen recording link here]
+](https://drive.google.com/file/d/1Ylc0ZR9K8Ne0748Dp4wWPGyf7GbW5OOD/view?usp=sharing)
 
 **Video Contents:**
 - Website interface walkthrough
 - Creating multiple tasks with different priorities
 - n8n workflow execution in real-time
 - Google Sheets data verification
-- Response feedback from n8n to website
+- Response feedback from n8n to the website
 
 ## 📸 Screenshots
 
 ### Website Interface
-[Add screenshot of the main interface]
+<img width="937" height="898" alt="image" src="https://github.com/user-attachments/assets/28574277-6ba2-43dd-b3a2-0eb304e62aae" />
+
 
 ### n8n Workflow
-[Add screenshot of your n8n workflow canvas]
+<img width="1919" height="912" alt="image" src="https://github.com/user-attachments/assets/9c9f51df-fbde-4104-9635-4759dabf1c7b" />
 
 ### Google Sheets Integration
-[Add screenshot of populated Google Sheets]
+<img width="1912" height="890" alt="image" src="https://github.com/user-attachments/assets/5f898aa7-7f7d-4677-919d-18fd8b7aa8a5" />
 
 ### Success Message
-[Add screenshot of success notification]
+<img width="735" height="902" alt="image" src="https://github.com/user-attachments/assets/cc78ee40-8ca0-4e7a-a40e-7b93a6ee4693" />
 
 ## 🐛 Troubleshooting
 
@@ -264,12 +266,12 @@ task-manager-n8n/
 **Problem:** "Data not appearing in Google Sheets"
 - **Solution:**
   - Verify Google Sheets authentication in n8n
-  - Check column mapping in Google Sheets node
+  - Check column mapping in the Google Sheets node
   - Ensure sheet name matches exactly
 
 **Problem:** "Tasks disappear after reload"
 - **Solution:**
-  - Check browser's localStorage settings
+  - Check the browser's localStorage settings
   - Make sure cookies/storage are not blocked
   - Try a different browser
 
